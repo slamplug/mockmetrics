@@ -14,6 +14,13 @@ public class Timer implements Metric {
         return new Timer();
     }
 
+    public static Timer parse(final String metric) {
+        return timer()
+                .withName(metric.substring(0, metric.indexOf(":")))
+                .withValue(Integer.valueOf(metric.substring(metric.indexOf(":") + 1, metric.indexOf("|"))))
+                .withSampling(Double.valueOf(metric.substring(metric.indexOf(SAMPLING_TYPE) + SAMPLING_TYPE.length())));
+    }
+
     public Timer withName(final String name) {
         this.name = name;
         return this;

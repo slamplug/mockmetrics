@@ -15,6 +15,16 @@ public class Counter implements Metric {
         return new Counter();
     }
 
+    public static Counter parse(final String metric) {
+        Counter counter = counter()
+                .withName(metric.substring(0, metric.indexOf(":")))
+                .withValue(Integer.valueOf(metric.substring(metric.indexOf(":") + 1, metric.indexOf("|"))));
+        if (metric.contains(SAMPLING_TYPE)) {
+            counter.withSampling(Double.valueOf(metric.substring(metric.indexOf(SAMPLING_TYPE) + SAMPLING_TYPE.length())));
+        }
+        return counter;
+    }
+
     public Counter withName(final String name) {
         this.name = name;
         return this;

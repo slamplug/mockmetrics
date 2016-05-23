@@ -12,6 +12,12 @@ public class Gauge implements Metric {
         return new Gauge();
     }
 
+    public static Gauge parse(final String metric) {
+        return gauge()
+                .withName(metric.substring(0, metric.indexOf(":")))
+                .withValue(Integer.valueOf(metric.substring(metric.indexOf(":") + 1, metric.indexOf("|"))));
+    }
+
     public Gauge withName(final String name) {
         this.name = name;
         return this;

@@ -12,6 +12,12 @@ public class Set implements Metric {
         return new Set();
     }
 
+    public static Set parse(final String metric) {
+        return set()
+                .withName(metric.substring(0, metric.indexOf(":")))
+                .withValue(Integer.valueOf(metric.substring(metric.indexOf(":") + 1, metric.indexOf("|"))));
+    }
+
     public Set withName(final String name) {
         this.name = name;
         return this;
