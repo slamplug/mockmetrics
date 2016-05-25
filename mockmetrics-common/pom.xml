@@ -9,18 +9,12 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>mockmetrics-server</artifactId>
+    <artifactId>mockmetrics-common</artifactId>
 
-    <name>Mock Metrics Server</name>
-    <description>>Mock Metrics Server</description>
+    <name>Mock Metrics Common</name>
+    <description>>Mock Metrics Common Module</description>
 
     <dependencies>
-        <dependency>
-            <groupId>com.firstutility</groupId>
-            <artifactId>mockmetrics-common</artifactId>
-            <version>${version}</version>
-        </dependency>
-
         <!-- Netty -->
         <dependency>
             <groupId>io.netty</groupId>
