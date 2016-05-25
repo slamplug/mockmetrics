@@ -13,12 +13,12 @@ public class MockMetricsServer {
 
     private final MockMetrics mockMetrics;
 
-    public MockMetricsServer(Integer... ports) {
-        mockMetrics = new MockMetrics(ports);
+    public MockMetricsServer(final Integer... serverPortBindings) {
+        mockMetrics = new MockMetrics(serverPortBindings);
     }
 
-    public static MockMetricsServer startMockMetricsServer(Integer... ports) {
-        return new MockMetricsServer(ports);
+    public static MockMetricsServer startMockMetricsServer(final Integer... serverPortBindings) {
+        return new MockMetricsServer(serverPortBindings);
     }
 
     public boolean isRunning() {

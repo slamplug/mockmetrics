@@ -16,13 +16,13 @@ import java.util.List;
 /**
  * Handles server side channel
  */
-public class MockMetricsServerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
+public class MockMetricsUdpServerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private MetricFilter metricFilter;
 
-    public MockMetricsServerHandler(final MetricFilter metricFilter) {
+    public MockMetricsUdpServerHandler(final MetricFilter metricFilter) {
         this.metricFilter = metricFilter;
     }
 
