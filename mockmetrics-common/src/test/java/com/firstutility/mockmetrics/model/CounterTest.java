@@ -2,6 +2,7 @@ package com.firstutility.mockmetrics.model;
 
 import org.junit.Test;
 
+import static com.firstutility.mockmetrics.model.Counter.counter;
 import static com.firstutility.mockmetrics.model.Counter.parse;
 import static org.junit.Assert.assertEquals;
 
@@ -22,6 +23,18 @@ public class CounterTest {
         assertEquals("test.metric", counter.getName());
         assertEquals(99, counter.getValue());
         assertEquals(0.1, counter.getSampling(), 0.001);
+    }
+
+    @Test
+    public void testToStringCounterMetric() throws Exception {
+        Counter counter = counter().withName("test.metric").withValue(1);
+        assertEquals("test.metric:1|c", counter.toString());
+    }
+
+    @Test
+    public void testToStringCounterMetricWithSampling() throws Exception {
+        Counter counter = counter().withName("test.metric").withValue(1).withSampling(0.1);
+        assertEquals("test.metric:1|c|@0.1", counter.toString());
     }
 
     @Test(expected = NumberFormatException.class)
