@@ -3,6 +3,7 @@ package com.firstutility.mockmetrics.utils;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.concurrent.TimeUnit;
 
 public class UDPClient {
 
@@ -36,6 +37,14 @@ public class UDPClient {
             if (socket != null) {
                 socket.close();
             }
+        }
+    }
+
+    public void sendMetricWithPauseAfter(final String metric) throws Exception {
+        this.send(metric);
+        try {
+            TimeUnit.MILLISECONDS.sleep(500);
+        } catch (InterruptedException e) {
         }
     }
 

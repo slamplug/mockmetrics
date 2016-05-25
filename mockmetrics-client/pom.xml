@@ -8,10 +8,10 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>mockmetrics-example</artifactId>
+    <artifactId>mockmetrics-client</artifactId>
 
-    <name>Mock Metrics Example</name>
-    <description>>Mock Metrics Example</description>
+    <name>Mock Metrics Client</name>
+    <description>>Mock Metrics Client</description>
 
     <dependencies>
         <!-- mock metrics -->

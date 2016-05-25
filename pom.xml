@@ -22,6 +22,7 @@
 
     <modules>
         <module>mockmetrics-common</module>
+        <module>mockmetrics-client</module>
         <module>mockmetrics-server</module>
         <module>mockmetrics-example</module>
     </modules>
