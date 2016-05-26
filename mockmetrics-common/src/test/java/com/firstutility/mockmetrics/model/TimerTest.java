@@ -20,15 +20,25 @@ public class TimerTest {
     @Test
     public void testToStringTimerMetric() throws Exception {
         Timer timer = timer().withName("test.metric").withValue(99);
-
-        assertEquals("test.metric:99|ms|@0.0", timer.toString());
+        assertEquals("test.metric:99|ms|@0.1", timer.toString());
     }
 
     @Test
     public void testToStringTimerMetricWithSampling() throws Exception {
         Timer timer = timer().withName("test.metric").withValue(99).withSampling(0.01);
-
         assertEquals("test.metric:99|ms|@0.01", timer.toString());
+    }
+
+    @Test
+    public void testToJsonStringTimerMetric() throws Exception {
+        Timer timer = timer().withName("test.metric").withValue(99);
+        assertEquals("{\"type\":\"timer\",\"name\":\"test.metric\",\"value\":99,\"sampling\":0.1}", timer.toJsonString());
+    }
+
+    @Test
+    public void testToJsonStringTimerMetricWithSampling() throws Exception {
+        Timer timer = timer().withName("test.metric").withValue(99).withSampling(0.01);
+        assertEquals("{\"type\":\"timer\",\"name\":\"test.metric\",\"value\":99,\"sampling\":0.01}", timer.toJsonString());
     }
 
     @Test(expected = NumberFormatException.class)

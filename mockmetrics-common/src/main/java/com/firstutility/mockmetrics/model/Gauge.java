@@ -1,10 +1,19 @@
 package com.firstutility.mockmetrics.model;
 
 
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+
+@JsonFilter("gaugeJsonFilter")
 public class Gauge implements Metric {
 
+    public static final String METRIC_TYPE = "gauge";
     public static final String GAUGE_TYPE = "|g";
 
+    private String type = METRIC_TYPE;
     private String name;
     private int value;
     private boolean increment = false;
@@ -53,9 +62,20 @@ public class Gauge implements Metric {
         return this.increment;
     }
 
+    public String getType() {
+        return this.type;
+    }
+
     @Override
     public String toString() {
         return name + ":" + ((isIncrement() && (value >= 0)) ? "+" : "") + value + GAUGE_TYPE;
+    }
+
+    @Override
+    public String toJsonString() throws JsonProcessingException {
+        return new ObjectMapper().setFilterProvider(new SimpleFilterProvider().addFilter("gaugeJsonFilter",
+                SimpleBeanPropertyFilter.filterOutAllExcept("type", "name", "value", "increment")))
+                .writeValueAsString(this);
     }
 
     @Override

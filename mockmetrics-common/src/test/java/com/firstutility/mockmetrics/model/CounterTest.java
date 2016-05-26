@@ -37,6 +37,18 @@ public class CounterTest {
         assertEquals("test.metric:1|c|@0.1", counter.toString());
     }
 
+    @Test
+    public void testToJsonStringCounterMetric() throws Exception {
+        Counter counter = counter().withName("test.metric").withValue(1);
+        assertEquals("{\"type\":\"counter\",\"name\":\"test.metric\",\"value\":1}", counter.toJsonString());
+    }
+
+    @Test
+    public void testToJsonStringCounterMetricWithSampling() throws Exception {
+        Counter counter = counter().withName("test.metric").withValue(1).withSampling(0.1);
+        assertEquals("{\"type\":\"counter\",\"name\":\"test.metric\",\"value\":1,\"sampling\":0.1}", counter.toJsonString());
+    }
+
     @Test(expected = NumberFormatException.class)
     public void testParseCounterInvalidMetricString() throws Exception {
         parse("test.metric:aa|c");

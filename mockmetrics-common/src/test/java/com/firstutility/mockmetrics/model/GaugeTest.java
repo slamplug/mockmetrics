@@ -54,6 +54,24 @@ public class GaugeTest {
         assertEquals("test.metric:+2|g", gauge.toString());
     }
 
+    @Test
+    public void testToJsonStringGaugeMetric() throws Exception {
+        Gauge gauge = gauge().withName("test.metric").withValue(1);
+        assertEquals("{\"type\":\"gauge\",\"name\":\"test.metric\",\"value\":1,\"increment\":false}", gauge.toJsonString());
+    }
+
+    @Test
+    public void testToJsonStringGaugeMetricNegativeIncrement() throws Exception {
+        Gauge gauge = gauge().withName("test.metric").withValue(-4).withIncrement();
+        assertEquals("{\"type\":\"gauge\",\"name\":\"test.metric\",\"value\":-4,\"increment\":true}", gauge.toJsonString());
+    }
+
+    @Test
+    public void testToJsonStringGaugeMetricPositiveIncrement() throws Exception {
+        Gauge gauge = gauge().withName("test.metric").withValue(2).withIncrement();
+        assertEquals("{\"type\":\"gauge\",\"name\":\"test.metric\",\"value\":2,\"increment\":true}", gauge.toJsonString());
+    }
+
     @Test(expected = NumberFormatException.class)
     public void testParseGaugeInvalidMetricString() throws Exception {
         parse("test.metric:aa|g");

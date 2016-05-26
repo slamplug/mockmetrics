@@ -1,11 +1,24 @@
 package com.firstutility.mockmetrics.model;
 
 
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.google.common.collect.Sets;
+
+import java.util.Arrays;
+import java.util.List;
+
+@JsonFilter("counterJsonFilter")
 public class Counter implements Metric {
 
+    public static final String METRIC_TYPE = "counter";
     public static final String COUNTER_TYPE = "|c";
     public static final String SAMPLING_TYPE = "|@";
 
+    private String type = METRIC_TYPE;
     private String name;
     private int value;
     private double sampling;
@@ -53,9 +66,23 @@ public class Counter implements Metric {
         return sampling;
     }
 
+    public String getType() {
+        return this.type;
+    }
+
     @Override
     public String toString() {
         return name + ":" + value + COUNTER_TYPE + ((this.hasSampling) ? (SAMPLING_TYPE + sampling) : "");
+    }
+
+    @Override
+    public String toJsonString() throws JsonProcessingException {
+        List<String> filterlist = (!hasSampling) ?
+                Arrays.asList("type", "name", "value") :
+                Arrays.asList("type", "name", "value", "sampling");
+        return new ObjectMapper().setFilterProvider(new SimpleFilterProvider().addFilter("counterJsonFilter",
+                SimpleBeanPropertyFilter.filterOutAllExcept(Sets.newHashSet(filterlist))))
+                .writeValueAsString(this);
     }
 
     @Override

@@ -1,10 +1,21 @@
 package com.firstutility.mockmetrics.model;
 
 
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+
+import java.io.IOException;
+
+@JsonFilter("setJsonFilter")
 public class Set implements Metric {
 
+    public static final String METRIC_TYPE = "set";
     public static final String SET_TYPE = "|s";
 
+    private String type = METRIC_TYPE;
     private String name;
     private int value;
 
@@ -16,6 +27,10 @@ public class Set implements Metric {
         return set()
                 .withName(metric.substring(0, metric.indexOf(":")))
                 .withValue(Integer.valueOf(metric.substring(metric.indexOf(":") + 1, metric.indexOf("|"))));
+    }
+
+    public static Set parseJson(final String jsonMetric) throws IOException {
+        return new ObjectMapper().readValue(jsonMetric, Set.class);
     }
 
     public Set withName(final String name) {
@@ -41,9 +56,20 @@ public class Set implements Metric {
         return 0.0;
     }
 
+    public String getType() {
+        return this.type;
+    }
+
     @Override
     public String toString() {
         return name + ":" + value + SET_TYPE;
+    }
+
+    @Override
+    public String toJsonString() throws JsonProcessingException {
+        return new ObjectMapper().setFilterProvider(new SimpleFilterProvider().addFilter("setJsonFilter",
+                SimpleBeanPropertyFilter.filterOutAllExcept("type", "name", "value")))
+                .writeValueAsString(this);
     }
 
     @Override

@@ -1,14 +1,19 @@
 package com.firstutility.mockmetrics.model;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class Timer implements Metric {
 
+    public static final String METRIC_TYPE = "timer";
     public static final String TIMER_TYPE = "|ms";
     public static final String SAMPLING_TYPE = "|@";
 
+    private String type = METRIC_TYPE;
     private String name;
     private int value;
-    private double sampling;
+    private double sampling = 0.1;
 
     public static Timer timer() {
         return new Timer();
@@ -48,9 +53,18 @@ public class Timer implements Metric {
         return sampling;
     }
 
+    public String getType() {
+        return this.type;
+    }
+
     @Override
     public String toString() {
         return name + ":" + value + TIMER_TYPE + SAMPLING_TYPE + sampling;
+    }
+
+    @Override
+    public String toJsonString() throws JsonProcessingException {
+        return new ObjectMapper().writeValueAsString(this);
     }
 
     @Override
