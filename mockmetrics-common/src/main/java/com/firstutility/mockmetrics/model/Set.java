@@ -4,8 +4,7 @@ package com.firstutility.mockmetrics.model;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.firstutility.mockmetrics.utils.JsonFilterHelper;
 
 import java.io.IOException;
 
@@ -67,8 +66,7 @@ public class Set implements Metric {
 
     @Override
     public String toJsonString() throws JsonProcessingException {
-        return new ObjectMapper().setFilterProvider(new SimpleFilterProvider().addFilter("setJsonFilter",
-                SimpleBeanPropertyFilter.filterOutAllExcept("type", "name", "value")))
+        return new ObjectMapper().setFilterProvider(JsonFilterHelper.addFilters(this))
                 .writeValueAsString(this);
     }
 

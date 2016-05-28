@@ -4,8 +4,9 @@ package com.firstutility.mockmetrics.model;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.firstutility.mockmetrics.utils.JsonFilterHelper;
+
+import java.io.IOException;
 
 @JsonFilter("gaugeJsonFilter")
 public class Gauge implements Metric {
@@ -28,6 +29,10 @@ public class Gauge implements Metric {
                 .withValue(Integer.valueOf(metric.substring(metric.indexOf(":") + 1, metric.indexOf("|"))));
         gauge.increment = (metric.contains("+") || metric.contains("-"));
         return gauge;
+    }
+
+    public static Gauge parseJson(final String jsonMetric) throws IOException {
+        return new ObjectMapper().readValue(jsonMetric, Gauge.class);
     }
 
     public Gauge withName(final String name) {
@@ -73,8 +78,7 @@ public class Gauge implements Metric {
 
     @Override
     public String toJsonString() throws JsonProcessingException {
-        return new ObjectMapper().setFilterProvider(new SimpleFilterProvider().addFilter("gaugeJsonFilter",
-                SimpleBeanPropertyFilter.filterOutAllExcept("type", "name", "value", "increment")))
+        return new ObjectMapper().setFilterProvider(JsonFilterHelper.addFilters(this))
                 .writeValueAsString(this);
     }
 

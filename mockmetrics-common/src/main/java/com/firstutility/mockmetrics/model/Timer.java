@@ -1,9 +1,14 @@
 package com.firstutility.mockmetrics.model;
 
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.firstutility.mockmetrics.utils.JsonFilterHelper;
 
+import java.io.IOException;
+
+@JsonFilter("timerJsonFilter")
 public class Timer implements Metric {
 
     public static final String METRIC_TYPE = "timer";
@@ -24,6 +29,10 @@ public class Timer implements Metric {
                 .withName(metric.substring(0, metric.indexOf(":")))
                 .withValue(Integer.valueOf(metric.substring(metric.indexOf(":") + 1, metric.indexOf("|"))))
                 .withSampling(Double.valueOf(metric.substring(metric.indexOf(SAMPLING_TYPE) + SAMPLING_TYPE.length())));
+    }
+
+    public static Timer parseJson(final String jsonMetric) throws IOException {
+        return new ObjectMapper().readValue(jsonMetric, Timer.class);
     }
 
     public Timer withName(final String name) {
@@ -64,7 +73,8 @@ public class Timer implements Metric {
 
     @Override
     public String toJsonString() throws JsonProcessingException {
-        return new ObjectMapper().writeValueAsString(this);
+        return new ObjectMapper().setFilterProvider(JsonFilterHelper.addFilters(this))
+                .writeValueAsString(this);
     }
 
     @Override
