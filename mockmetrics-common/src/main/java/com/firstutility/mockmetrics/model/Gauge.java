@@ -11,10 +11,8 @@ import java.io.IOException;
 @JsonFilter("gaugeJsonFilter")
 public class Gauge implements Metric {
 
-    public static final String METRIC_TYPE = "gauge";
     public static final String GAUGE_TYPE = "|g";
 
-    private String type = METRIC_TYPE;
     private String name;
     private int value;
     private boolean increment = false;
@@ -59,16 +57,12 @@ public class Gauge implements Metric {
     }
 
     @Override
-    public double getSampling() {
+    public Double getSampling() {
         return 0.0;
     }
 
     public boolean isIncrement() {
         return this.increment;
-    }
-
-    public String getType() {
-        return this.type;
     }
 
     @Override

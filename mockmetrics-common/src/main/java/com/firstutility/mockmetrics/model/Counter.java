@@ -1,6 +1,5 @@
 package com.firstutility.mockmetrics.model;
 
-
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,15 +10,12 @@ import java.io.IOException;
 @JsonFilter("counterJsonFilter")
 public class Counter implements Metric {
 
-    public static final String METRIC_TYPE = "counter";
     public static final String COUNTER_TYPE = "|c";
     public static final String SAMPLING_TYPE = "|@";
 
-    private String type = METRIC_TYPE;
     private String name;
     private int value;
-    private double sampling = 0.0;
-    private boolean hasSampling = false;
+    private Double sampling = null;
 
     public static Counter counter() {
         return new Counter();
@@ -36,7 +32,8 @@ public class Counter implements Metric {
     }
 
     public static Counter parseJson(final String jsonMetric) throws IOException {
-        return new ObjectMapper().readValue(jsonMetric, Counter.class);
+        Counter counter = new ObjectMapper().readValue(jsonMetric, Counter.class);
+        return counter;
     }
 
     public Counter withName(final String name) {
@@ -49,9 +46,8 @@ public class Counter implements Metric {
         return this;
     }
 
-    public Counter withSampling(final double sampling) {
+    public Counter withSampling(final Double sampling) {
         this.sampling = sampling;
-        this.hasSampling = true;
         return this;
     }
 
@@ -63,23 +59,30 @@ public class Counter implements Metric {
         return this.value;
     }
 
-    public double getSampling() {
-        return sampling;
-    }
-
-    public String getType() {
-        return this.type;
+    public Double getSampling() {
+        return this.sampling;
     }
 
     public boolean hasSampling() {
-        return this.hasSampling;
+        return (this.sampling != null);
     }
 
+    /**
+     * returns gorets:1|c or gorets:1|c@0.1
+     *
+     * @return
+     */
     @Override
     public String toString() {
-        return name + ":" + value + COUNTER_TYPE + ((this.hasSampling) ? (SAMPLING_TYPE + sampling) : "");
+        return name + ":" + value + COUNTER_TYPE + ((this.sampling != null) ? (SAMPLING_TYPE + sampling) : "");
     }
 
+    /**
+     * Returns { "name": "gorets", "value": 1 } or { "name": "gorets", "value": 1, "sampling": 0.1 }
+     *
+     * @return
+     * @throws JsonProcessingException
+     */
     @Override
     public String toJsonString() throws JsonProcessingException {
         return new ObjectMapper().setFilterProvider(JsonFilterHelper.addFilters(this))
@@ -100,21 +103,18 @@ public class Counter implements Metric {
         if (value != counter.value) {
             return false;
         }
-        if (Double.compare(counter.sampling, sampling) != 0) {
+        if (!name.equals(counter.name)) {
             return false;
         }
-        return name != null ? name.equals(counter.name) : counter.name == null;
+        return (sampling != null) ? sampling.equals(counter.sampling) : counter.sampling == null;
 
     }
 
     @Override
     public int hashCode() {
-        int result;
-        long temp;
-        result = name != null ? name.hashCode() : 0;
+        int result = name.hashCode();
         result = 31 * result + value;
-        temp = Double.doubleToLongBits(sampling);
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        result = 31 * result + (sampling != null ? sampling.hashCode() : 0);
         return result;
     }
 }

@@ -13,10 +13,10 @@ import java.util.*;
 public class JsonFilterHelper {
 
     private static Map<String, Set<String>> jsonFilterMap = new HashMap<String, Set<String>>() {{
-        put("gaugeJsonFilter", Sets.newHashSet(Arrays.asList("type", "name", "value", "increment")));
-        put("setJsonFilter", Sets.newHashSet(Arrays.asList("type", "name", "value")));
-        put("counterJsonFilter", Sets.newHashSet(Arrays.asList("type", "name", "value")));
-        put("timerJsonFilter", Sets.newHashSet(Arrays.asList("type", "name", "value", "sampling")));
+        put("gaugeJsonFilter", Sets.newHashSet(Arrays.asList("name", "value", "increment")));
+        put("setJsonFilter", Sets.newHashSet(Arrays.asList("name", "value")));
+        put("counterJsonFilter", Sets.newHashSet(Arrays.asList("name", "value")));
+        put("timerJsonFilter", Sets.newHashSet(Arrays.asList("name", "value", "sampling")));
         put("verificationJsonFilter", Sets.newHashSet(Arrays.asList("metric", "times")));
         put("verificationsJsonFilter", Sets.newHashSet(Arrays.asList("verifications")));
     }};
@@ -51,7 +51,7 @@ public class JsonFilterHelper {
     private static Set<String> modifyIncludeFieldSet(final Object object, final Set<String> includeFields) {
         if (object instanceof Counter) {
             Counter counter = (Counter) object;
-            if (counter.hasSampling()) {
+            if (counter.getSampling() != null) {
                 includeFields.add("sampling");
             }
         }

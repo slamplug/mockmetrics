@@ -36,7 +36,8 @@ public class MetricFilter {
     }
 
     public void verifyTimes(final Metric metric, final int times) {
-        logger.debug("VERIFY metrics queue :" + this.metricQueue);
+        logger.debug("verifyTimes(), queue  :" + this.metricQueue);
+        logger.debug("verifyTimes(), metric :" + this.metricQueue);
 
         LinkedList<Metric> metricsList = new LinkedList<Metric>(this.metricQueue);
         logger.debug("VERIFY metricsList :" + metricsList);

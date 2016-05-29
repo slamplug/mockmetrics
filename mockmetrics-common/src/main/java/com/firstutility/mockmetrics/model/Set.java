@@ -11,10 +11,8 @@ import java.io.IOException;
 @JsonFilter("setJsonFilter")
 public class Set implements Metric {
 
-    public static final String METRIC_TYPE = "set";
     public static final String SET_TYPE = "|s";
 
-    private String type = METRIC_TYPE;
     private String name;
     private int value;
 
@@ -51,12 +49,8 @@ public class Set implements Metric {
     }
 
     @Override
-    public double getSampling() {
+    public Double getSampling() {
         return 0.0;
-    }
-
-    public String getType() {
-        return this.type;
     }
 
     @Override

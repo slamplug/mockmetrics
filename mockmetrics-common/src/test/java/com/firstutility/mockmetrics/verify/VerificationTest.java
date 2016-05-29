@@ -11,7 +11,7 @@ import static com.firstutility.mockmetrics.model.Gauge.gauge;
 import static com.firstutility.mockmetrics.model.Set.set;
 import static com.firstutility.mockmetrics.model.Timer.timer;
 import static com.firstutility.mockmetrics.verify.Verification.verification;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class VerificationTest {
 
@@ -112,5 +112,46 @@ public class VerificationTest {
 
         assertEquals("{\"metric\":{\"type\":\"timer\",\"name\":\"test.metric\",\"value\":99,\"sampling\":0.2},\"times\":2}",
                 verification.toJsonString());
+    }
+
+    @Test
+    public void testParseJsonStringVerificationWithCounter() throws Exception {
+        Verification verification = Verification.parseJson(
+                "{\"metric\":{\"type\":\"counter\",\"name\":\"test.metric\",\"value\":1},\"times\":1}");
+
+        assertEquals(1, verification.getTimes());
+        assertTrue(verification.getMetric() instanceof Counter);
+        Counter counter = (Counter) verification.getMetric();
+        assertEquals("test.metric", counter.getName());
+        assertEquals(1, counter.getValue());
+        assertFalse(counter.hasSampling());
+    }
+
+    @Test
+    public void testParseJsonStringVerificationWithCounterWithSampling() throws Exception {
+        Verification verification = Verification.parseJson(
+                "{\"metric\":{\"type\":\"counter\",\"name\":\"test.metric\",\"value\":1,\"sampling\":0.2},\"times\":1}");
+
+        assertEquals(1, verification.getTimes());
+        assertTrue(verification.getMetric() instanceof Counter);
+        Counter counter = (Counter) verification.getMetric();
+        assertEquals("test.metric", counter.getName());
+        assertEquals(1, counter.getValue());
+        assertTrue(counter.hasSampling());
+        assertEquals(0.2, counter.getSampling(), 0.001);
+    }
+
+    @Test
+    public void testParseJsonStringVerificationWithCounterWithSamplingWithTimes() throws Exception {
+        Verification verification = Verification.parseJson(
+                "{\"metric\":{\"type\":\"counter\",\"name\":\"test.metric\",\"value\":1,\"sampling\":0.2},\"times\":3}");
+
+        assertEquals(3, verification.getTimes());
+        assertTrue(verification.getMetric() instanceof Counter);
+        Counter counter = (Counter) verification.getMetric();
+        assertEquals("test.metric", counter.getName());
+        assertEquals(1, counter.getValue());
+        assertTrue(counter.hasSampling());
+        assertEquals(0.2, counter.getSampling(), 0.001);
     }
 }

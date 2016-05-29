@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.firstutility.mockmetrics.model.Metric;
 import com.firstutility.mockmetrics.utils.JsonFilterHelper;
 
+import java.io.IOException;
+
 @JsonFilter("verificationJsonFilter")
 public class Verification {
 
@@ -40,5 +42,9 @@ public class Verification {
     public String toJsonString() throws JsonProcessingException {
         return new ObjectMapper().setFilterProvider(JsonFilterHelper.addFilters(this))
                 .writeValueAsString(this);
+    }
+
+    public static Verification parseJson(final String jsonMetric) throws IOException {
+        return new ObjectMapper().readValue(jsonMetric, Verification.class);
     }
 }

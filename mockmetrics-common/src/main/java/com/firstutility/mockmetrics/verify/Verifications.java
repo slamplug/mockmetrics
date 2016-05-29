@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.firstutility.mockmetrics.utils.JsonFilterHelper;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,5 +41,9 @@ public class Verifications {
         int i = 2;
         return new ObjectMapper().setFilterProvider(simpleFilterProvider)
                 .writeValueAsString(this);
+    }
+
+    public static Verifications parseJson(final String jsonMetric) throws IOException {
+        return new ObjectMapper().readValue(jsonMetric, Verifications.class);
     }
 }

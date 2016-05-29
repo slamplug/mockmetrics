@@ -11,11 +11,9 @@ import java.io.IOException;
 @JsonFilter("timerJsonFilter")
 public class Timer implements Metric {
 
-    public static final String METRIC_TYPE = "timer";
     public static final String TIMER_TYPE = "|ms";
     public static final String SAMPLING_TYPE = "|@";
 
-    private String type = METRIC_TYPE;
     private String name;
     private int value;
     private double sampling = 0.1;
@@ -58,12 +56,8 @@ public class Timer implements Metric {
         return this.value;
     }
 
-    public double getSampling() {
+    public Double getSampling() {
         return sampling;
-    }
-
-    public String getType() {
-        return this.type;
     }
 
     @Override

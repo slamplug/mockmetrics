@@ -2,9 +2,8 @@ package com.firstutility.mockmetrics.model;
 
 import org.junit.Test;
 
-import static com.firstutility.mockmetrics.model.Counter.counter;
-import static com.firstutility.mockmetrics.model.Counter.parse;
-import static org.junit.Assert.assertEquals;
+import static com.firstutility.mockmetrics.model.Counter.*;
+import static org.junit.Assert.*;
 
 public class CounterTest {
 
@@ -47,6 +46,25 @@ public class CounterTest {
     public void testToJsonStringCounterMetricWithSampling() throws Exception {
         Counter counter = counter().withName("test.metric").withValue(99).withSampling(0.1);
         assertEquals("{\"type\":\"counter\",\"name\":\"test.metric\",\"value\":99,\"sampling\":0.1}", counter.toJsonString());
+    }
+
+    @Test
+    public void testParseJsonStringCounterMetric() throws Exception {
+        Counter counter = parseJson("{\"type\":\"counter\",\"name\":\"test.metric\",\"value\":99}");
+
+        assertEquals("test.metric", counter.getName());
+        assertEquals(99, counter.getValue());
+        assertFalse(counter.hasSampling());
+    }
+
+    @Test
+    public void testParseJsonStringCounterMetricWithSampling() throws Exception {
+        Counter counter = parseJson("{\"type\":\"counter\",\"name\":\"test.metric\",\"value\":99,\"sampling\":0.1}");
+
+        assertEquals("test.metric", counter.getName());
+        assertEquals(99, counter.getValue());
+        assertTrue(counter.hasSampling());
+        assertEquals(0.1, counter.getSampling(), 0.0001);
     }
 
     @Test(expected = NumberFormatException.class)

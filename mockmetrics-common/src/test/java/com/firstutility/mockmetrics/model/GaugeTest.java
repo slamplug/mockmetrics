@@ -2,8 +2,7 @@ package com.firstutility.mockmetrics.model;
 
 import org.junit.Test;
 
-import static com.firstutility.mockmetrics.model.Gauge.gauge;
-import static com.firstutility.mockmetrics.model.Gauge.parse;
+import static com.firstutility.mockmetrics.model.Gauge.*;
 import static org.junit.Assert.*;
 
 
@@ -70,6 +69,33 @@ public class GaugeTest {
     public void testToJsonStringGaugeMetricPositiveIncrement() throws Exception {
         Gauge gauge = gauge().withName("test.metric").withValue(2).withIncrement();
         assertEquals("{\"type\":\"gauge\",\"name\":\"test.metric\",\"value\":2,\"increment\":true}", gauge.toJsonString());
+    }
+
+    @Test
+    public void testParseJsonStringGaugeMetric() throws Exception {
+        Gauge gauge = parseJson("{\"type\":\"gauge\",\"name\":\"test.metric\",\"value\":1,\"increment\":false}");
+
+        assertEquals("test.metric", gauge.getName());
+        assertEquals(1, gauge.getValue());
+        assertFalse(gauge.isIncrement());
+    }
+
+    @Test
+    public void testParseJsonStringGaugeMetricNegativeIncrement() throws Exception {
+        Gauge gauge = parseJson("{\"type\":\"gauge\",\"name\":\"test.metric\",\"value\":-4,\"increment\":true}");
+
+        assertEquals("test.metric", gauge.getName());
+        assertEquals(-4, gauge.getValue());
+        assertTrue(gauge.isIncrement());
+    }
+
+    @Test
+    public void testParseJsonStringGaugeMetricPositiveIncrement() throws Exception {
+        Gauge gauge = parseJson("{\"type\":\"gauge\",\"name\":\"test.metric\",\"value\":2,\"increment\":true}");
+
+        assertEquals("test.metric", gauge.getName());
+        assertEquals(2, gauge.getValue());
+        assertTrue(gauge.isIncrement());
     }
 
     @Test(expected = NumberFormatException.class)
