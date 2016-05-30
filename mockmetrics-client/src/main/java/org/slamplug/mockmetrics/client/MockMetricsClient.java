@@ -1,6 +1,6 @@
 package org.slamplug.mockmetrics.client;
 
-import org.slamplug.mockmetrics.model.Metric;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPut;
@@ -8,6 +8,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.slamplug.mockmetrics.verify.Verifications;
 
 import java.io.IOException;
 
@@ -26,16 +27,15 @@ public class MockMetricsClient {
     /**
      * Verify
      *
-     * @param metric
+     * @param verifications
      * @throws Exception
      */
-    public void verify(final Metric metric) throws Exception {
-        // metric to string
-        String metricString = metric.toString();
+    public void verify(final Verifications verifications) throws Exception {
+
         // http request to server
-        Metric returnedMetric = verifyByHttp(metricString);
+        Pair<Boolean, String> response = verifyByHttp(verifications.toJsonString());
         // get response
-        assert returnedMetric.equals(metric);
+        assert true : "true assertions";
     }
 
     /**
@@ -44,18 +44,18 @@ public class MockMetricsClient {
      * @return
      * @throws Exception
      */
-    private Metric verifyByHttp(final String metric) throws Exception {
+    private Pair<Boolean, String> verifyByHttp(final String body) throws Exception {
         // http request to server
         CloseableHttpClient httpclient = HttpClients.createDefault();
-        Metric returnMetric = null;
+        String responseBody = null;
         try {
             HttpPut httpPut = new HttpPut(baseUrl + "/verify");
 
             httpPut.addHeader("Content-Type", "application/text");
             httpPut.addHeader("Accept", "application/text");
-            httpPut.setEntity(new StringEntity(metric));
+            httpPut.setEntity(new StringEntity(body));
 
-            String responseBody = httpclient.execute(httpPut, new ResponseHandler<String>() {
+            responseBody = httpclient.execute(httpPut, new ResponseHandler<String>() {
                 @Override
                 public String handleResponse(HttpResponse httpResponse) throws IOException {
                     if (httpResponse.getEntity() != null) {
@@ -73,6 +73,6 @@ public class MockMetricsClient {
             httpclient.close();
         }
 
-        return returnMetric;
+        return Pair.of(responseBody != null && responseBody.equals("OK"), responseBody);
     }
 }
