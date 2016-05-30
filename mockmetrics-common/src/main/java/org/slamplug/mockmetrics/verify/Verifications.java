@@ -46,4 +46,11 @@ public class Verifications {
     public static Verifications parseJson(final String jsonMetric) throws IOException {
         return new ObjectMapper().readValue(jsonMetric, Verifications.class);
     }
+
+    @Override
+    public String toString() {
+        return "Verifications{" +
+                "verifications=" + verifications +
+                '}';
+    }
 }

@@ -1,27 +1,36 @@
 package org.slamplug.mockmetrics.server.handler;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.DecoderResult;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import org.slamplug.mockmetrics.filter.MetricFilter;
+import org.slamplug.mockmetrics.verify.Verifications;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.*;
-import static io.netty.handler.codec.http.HttpHeaders.*;
-import static io.netty.handler.codec.http.HttpResponseStatus.*;
+import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
+import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
+import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+import static org.slamplug.mockmetrics.verify.Verifications.parseJson;
 
 @ChannelHandler.Sharable
 public class MockMetricsTcpServerHandler extends SimpleChannelInboundHandler<Object> {
 
-    private HttpRequest request;
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    private FullHttpRequest request;
+
+    private MetricFilter metricFilter;
+
+    public MockMetricsTcpServerHandler(final MetricFilter metricFilter) {
+        this.metricFilter = metricFilter;
+    }
+
     /**
      * Buffer that stores the response content
      */
@@ -34,132 +43,84 @@ public class MockMetricsTcpServerHandler extends SimpleChannelInboundHandler<Obj
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object object) throws Exception {
-        if (object instanceof HttpRequest) {
-            HttpRequest request = this.request = (HttpRequest) object;
+        HttpResponseStatus httpResponseStatus = OK;
 
-            if (is100ContinueExpected(request)) {
-                send100Continue(channelHandlerContext);
-            }
+        logger.info("object type: " + object.getClass().getName());
 
-            buf.setLength(0);
-            buf.append("WELCOME TO THE WILD WILD WEB SERVER\r\n");
-            buf.append("===================================\r\n");
+        if (object instanceof FullHttpRequest) {
+            FullHttpRequest request = this.request = (FullHttpRequest) object;
 
-            buf.append("VERSION: ").append(request.getProtocolVersion()).append("\r\n");
-            buf.append("HOSTNAME: ").append(getHost(request, "unknown")).append("\r\n");
-            buf.append("REQUEST_URI: ").append(request.getUri()).append("\r\n\r\n");
+            logger.info("method: [" + request.getMethod() + "] url: [" + request.getUri() + "]");
+            if (request.getMethod().equals(HttpMethod.POST)) {
 
-            HttpHeaders headers = request.headers();
-            if (!headers.isEmpty()) {
-                for (Map.Entry<String, String> h : headers) {
-                    String key = h.getKey();
-                    String value = h.getValue();
-                    buf.append("HEADER: ").append(key).append(" = ").append(value).append("\r\n");
+                // Verify metric (Verifications in request)
+                if (request.getUri().equals("/verify")) {
+                    logger.info("verifying metrics");
+
+                    String body = getBodyAsString(request);
+                    Verifications verifications = parseJson(body);
+
+                    logger.info("verificaions: " + verifications.toString());
+
+                    // verify metrics using filter
+
+                    buf.setLength(0);
+                    buf.append("THIS IS THE RESULT OF THE VERIFY\r\n");
+
+                    httpResponseStatus = BAD_REQUEST;
                 }
-                buf.append("\r\n");
-            }
 
-            QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request.getUri());
-            Map<String, List<String>> params = queryStringDecoder.parameters();
-            if (!params.isEmpty()) {
-                for (Map.Entry<String, List<String>> p : params.entrySet()) {
-                    String key = p.getKey();
-                    List<String> vals = p.getValue();
-                    for (String val : vals) {
-                        buf.append("PARAM: ").append(key).append(" = ").append(val).append("\r\n");
-                    }
+                // Reset/clear metric store.
+                if (request.getUri().equals("/reset")) {
+                    logger.info("reset (clear) stored metrics");
+                    this.metricFilter.reset();
+
+                    buf.setLength(0);
+                    buf.append("OK\r\n");
                 }
-                buf.append("\r\n");
             }
-
-            appendDecoderResult(buf, request);
         }
 
-        if (object instanceof HttpContent) {
-            HttpContent httpContent = (HttpContent) object;
-
-            ByteBuf content = httpContent.content();
-            if (content.isReadable()) {
-                buf.append("CONTENT: ");
-                buf.append(content.toString(CharsetUtil.UTF_8));
-                buf.append("\r\n");
-                appendDecoderResult(buf, request);
-            }
-
-            if (object instanceof LastHttpContent) {
-                buf.append("END OF CONTENT\r\n");
-
-                LastHttpContent trailer = (LastHttpContent) object;
-                if (!trailer.trailingHeaders().isEmpty()) {
-                    buf.append("\r\n");
-                    for (String name : trailer.trailingHeaders().names()) {
-                        for (String value : trailer.trailingHeaders().getAll(name)) {
-                            buf.append("TRAILING HEADER: ");
-                            buf.append(name).append(" = ").append(value).append("\r\n");
-                        }
-                    }
-                    buf.append("\r\n");
-                }
-
-                writeResponse(trailer, channelHandlerContext);
-            }
+        if (object instanceof LastHttpContent) {
+            writeResponse(httpResponseStatus, channelHandlerContext);
         }
     }
 
-    private static void appendDecoderResult(StringBuilder buf, HttpObject o) {
-        DecoderResult result = o.getDecoderResult();
-        if (result.isSuccess()) {
-            return;
-        }
-
-        buf.append(".. WITH DECODER FAILURE: ");
-        buf.append(result.cause());
-        buf.append("\r\n");
-    }
-
-    private boolean writeResponse(HttpObject currentObj, ChannelHandlerContext ctx) {
-        // Decide whether to close the connection or not.
+    /**
+     * Write response
+     *
+     * @param httpResponseStatus
+     * @param ctx
+     * @return
+     */
+    private boolean writeResponse(final HttpResponseStatus httpResponseStatus, final ChannelHandlerContext ctx) {
         boolean keepAlive = isKeepAlive(request);
-        // Build the response object.
         FullHttpResponse response = new DefaultFullHttpResponse(
-                HTTP_1_1, currentObj.getDecoderResult().isSuccess() ? OK : BAD_REQUEST,
+                HTTP_1_1, httpResponseStatus,
                 Unpooled.copiedBuffer(buf.toString(), CharsetUtil.UTF_8));
 
         response.headers().set(CONTENT_TYPE, "text/plain; charset=UTF-8");
 
-        if (keepAlive) {
-            // Add 'Content-Length' header only for a keep-alive connection.
+        if (isKeepAlive(request)) {
             response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
-            // Add keep alive header as per:
-            // - http://www.w3.org/Protocols/HTTP/1.1/draft-ietf-http-v11-spec-01.html#Connection
             response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
         }
 
-        // Encode the cookie.
-        String cookieString = request.headers().get(COOKIE);
-        if (cookieString != null) {
-            Set<Cookie> cookies = CookieDecoder.decode(cookieString);
-            if (!cookies.isEmpty()) {
-                // Reset the cookies if necessary.
-                for (Cookie cookie : cookies) {
-                    response.headers().add(SET_COOKIE, ServerCookieEncoder.encode(cookie));
-                }
-            }
-        } else {
-            // Browser sent no cookie.  Add some.
-            response.headers().add(SET_COOKIE, ServerCookieEncoder.encode("key1", "value1"));
-            response.headers().add(SET_COOKIE, ServerCookieEncoder.encode("key2", "value2"));
-        }
-
-        // Write the response.
         ctx.write(response);
 
         return keepAlive;
     }
 
-    private static void send100Continue(ChannelHandlerContext ctx) {
-        FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, CONTINUE);
-        ctx.write(response);
+    private String getBodyAsString(FullHttpRequest fullHttpRequest) {
+        StringBuffer sb = new StringBuffer();
+        if (fullHttpRequest.content() != null && fullHttpRequest.content().readableBytes() > 0) {
+            byte[] bodyBytes = new byte[fullHttpRequest.content().readableBytes()];
+            fullHttpRequest.content().readBytes(bodyBytes);
+            if (bodyBytes.length > 0) {
+                sb.append(new String(bodyBytes, CharsetUtil.ISO_8859_1));
+            }
+        }
+        return sb.toString();
     }
 
     @Override

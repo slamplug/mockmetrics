@@ -1,8 +1,5 @@
 package org.slamplug.mockmetrics.server;
 
-import org.slamplug.mockmetrics.filter.MetricFilter;
-import org.slamplug.mockmetrics.server.handler.MockMetricsTcpServerHandler;
-import org.slamplug.mockmetrics.server.handler.MockMetricsUdpServerHandler;
 import com.google.common.util.concurrent.SettableFuture;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
@@ -11,10 +8,14 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import org.slamplug.mockmetrics.filter.MetricFilter;
+import org.slamplug.mockmetrics.server.handler.MockMetricsTcpServerHandler;
+import org.slamplug.mockmetrics.server.handler.MockMetricsUdpServerHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +66,8 @@ public class MockMetrics {
                         ChannelPipeline p = nioSocketChannel.pipeline();
                         p.addLast(new HttpRequestDecoder());
                         p.addLast(new HttpResponseEncoder());
-                        p.addLast(new MockMetricsTcpServerHandler());
+                        p.addLast(new HttpObjectAggregator(165536));
+                        p.addLast(new MockMetricsTcpServerHandler(metricFilter));
                     }
                 });
 
