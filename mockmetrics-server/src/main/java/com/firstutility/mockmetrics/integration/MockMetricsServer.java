@@ -2,6 +2,7 @@ package com.firstutility.mockmetrics.integration;
 
 import com.firstutility.mockmetrics.model.Metric;
 import com.firstutility.mockmetrics.server.MockMetrics;
+import com.firstutility.mockmetrics.verify.Verification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,11 +39,18 @@ public class MockMetricsServer {
     }
 
     public void verify(final Metric metric) {
-        mockMetrics.getMetricFilter().verify(metric);
+        verifyTimes(metric, 1);
+    }
+
+    public void verify(final Verification verification) {
+        verifyTimes(verification, 1);
     }
 
     public void verifyTimes(final Metric metric, final int times) {
         mockMetrics.getMetricFilter().verifyTimes(metric, times);
     }
 
+    public void verifyTimes(final Verification verification, final int times) {
+        mockMetrics.getMetricFilter().verifyTimes(verification.getMetric(), times);
+    }
 }

@@ -1,6 +1,8 @@
 package com.firstutility.mockmetrics.filter;
 
 import com.firstutility.mockmetrics.model.Metric;
+import com.firstutility.mockmetrics.verify.Verification;
+import com.firstutility.mockmetrics.verify.Verifications;
 import com.google.common.collect.EvictingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,13 +17,13 @@ public class MetricFilter {
 
     private final EvictingQueue<Metric> metricQueue = EvictingQueue.create(100);
 
-    public /* synchronized */ List<Metric> onMetrics(List<Metric> metrics) {
+    public /* synchronized */ List<Metric> onMetrics(final List<Metric> metrics) {
         metricQueue.addAll(metrics);
         logger.debug("metrics queue :" + this.metricQueue);
         return metrics;
     }
 
-    public /* synchronized */ Metric onMetric(Metric metric) {
+    public /* synchronized */ Metric onMetric(final Metric metric) {
         metricQueue.add(metric);
         logger.debug("metrics queue :" + this.metricQueue);
         return metric;
@@ -31,8 +33,23 @@ public class MetricFilter {
         metricQueue.clear();
     }
 
-    public void verify(Metric metric) {
+    public /* synchronized */ int depth() {
+        return metricQueue.size();
+    }
+
+    @Deprecated
+    public void verify(final Metric metric) {
         verifyTimes(metric, 1);
+    }
+
+    public void verify(final Verification verification) {
+        verifyTimes(verification.getMetric(), verification.getTimes());
+    }
+
+    public void verify(final Verifications verifications) {
+        for (Verification verification : verifications.getVerifications()) {
+            verifyTimes(verification.getMetric(), verification.getTimes());
+        }
     }
 
     public void verifyTimes(final Metric metric, final int times) {
@@ -60,7 +77,8 @@ public class MetricFilter {
                 verified = false;
             }
 
-            assert verified : "Metric not found " + times + ", expected:<" + metric.toString() + "> but was:<" + metricsList + ">";
+            assert verified : "Metric not found <" + times + "> time(s), expected:<" +
+                    metric.toString() + "> but was:<" + metricsList + ">";
         }
     }
 }
