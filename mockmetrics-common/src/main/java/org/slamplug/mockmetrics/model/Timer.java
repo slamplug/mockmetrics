@@ -82,9 +82,9 @@ public class Timer implements Metric {
 
         Timer timer = (Timer) o;
 
-        if (value != timer.value) {
+        /*if (value != timer.value) { // for timer don't match timed value.
             return false;
-        }
+        }*/
         if (Double.compare(timer.sampling, sampling) != 0) {
             return false;
         }

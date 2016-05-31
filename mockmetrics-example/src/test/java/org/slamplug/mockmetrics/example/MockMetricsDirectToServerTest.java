@@ -1,16 +1,16 @@
 package org.slamplug.mockmetrics.example;
 
-import org.slamplug.mockmetrics.integration.MockMetricsServer;
-import org.slamplug.mockmetrics.utils.UDPClient;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.slamplug.mockmetrics.integration.MockMetricsServer;
 import org.slamplug.mockmetrics.model.Gauge;
+import org.slamplug.mockmetrics.utils.UDPClient;
 import org.slamplug.mockmetrics.verify.Verification;
 
 import static org.slamplug.mockmetrics.model.Counter.counter;
 
-public class MockMetricsTest {
+public class MockMetricsDirectToServerTest {
 
     private MockMetricsServer mockMetricsServer;
     private UDPClient udpClient = new UDPClient("localhost", 9999);

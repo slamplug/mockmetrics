@@ -11,7 +11,7 @@ import static org.slamplug.mockmetrics.model.Gauge.gauge;
 import static org.slamplug.mockmetrics.verify.Verification.verification;
 import static org.slamplug.mockmetrics.verify.Verifications.verifications;
 
-public class MockMetricsIntegrationTest {
+public class MockMetricsUsingClientTest {
 
     private MockMetricsServer mockMetricsServer;
     private MockMetricsClient mockMetricsClient;
