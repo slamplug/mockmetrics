@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.*;
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
-import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import static org.slamplug.mockmetrics.verify.Verifications.parseJson;
@@ -63,11 +62,13 @@ public class MockMetricsTcpServerHandler extends SimpleChannelInboundHandler<Obj
                     logger.info("verificaions: " + verifications.toString());
 
                     // verify metrics using filter
-
-                    buf.setLength(0);
-                    buf.append("THIS IS THE RESULT OF THE VERIFY\r\n");
-
-                    httpResponseStatus = BAD_REQUEST;
+                    try {
+                        buf.setLength(0);
+                        this.metricFilter.verify(verifications);
+                        buf.append("OK\r\n");
+                    } catch (AssertionError e) {
+                        buf.append(e.getMessage() + "\r\n");
+                    }
                 }
 
                 // Reset/clear metric store.

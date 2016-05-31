@@ -1,18 +1,23 @@
 package org.slamplug.mockmetrics.client;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slamplug.mockmetrics.verify.Verifications;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 public class MockMetricsClient {
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final String baseUrl;
 
@@ -34,8 +39,8 @@ public class MockMetricsClient {
 
         // http request to server
         Pair<Boolean, String> response = verifyByHttp(verifications.toJsonString());
-        // get response
-        assert true : "true assertions";
+        // throw assertion if required
+        assert response.getLeft() : response.getRight();
     }
 
     /**
@@ -49,13 +54,13 @@ public class MockMetricsClient {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         String responseBody = null;
         try {
-            HttpPut httpPut = new HttpPut(baseUrl + "/verify");
+            HttpPost httpPost = new HttpPost(baseUrl + "/verify");
 
-            httpPut.addHeader("Content-Type", "application/text");
-            httpPut.addHeader("Accept", "application/text");
-            httpPut.setEntity(new StringEntity(body));
+            httpPost.addHeader("Content-Type", "application/text");
+            httpPost.addHeader("Accept", "application/text");
+            httpPost.setEntity(new StringEntity(body));
 
-            responseBody = httpclient.execute(httpPut, new ResponseHandler<String>() {
+            responseBody = trimResponseBody(httpclient.execute(httpPost, new ResponseHandler<String>() {
                 @Override
                 public String handleResponse(HttpResponse httpResponse) throws IOException {
                     if (httpResponse.getEntity() != null) {
@@ -64,15 +69,19 @@ public class MockMetricsClient {
                         throw new IOException("ContextIO returned empty response!");
                     }
                 }
-            });
-            System.out.println("----------------------------------------");
-            System.out.println(responseBody);
-            System.out.println("----------------------------------------");
+            }));
+            logger.debug("----------------------------------------");
+            logger.debug(responseBody);
+            logger.debug("----------------------------------------");
 
         } catch (IOException e) {
             httpclient.close();
         }
 
         return Pair.of(responseBody != null && responseBody.equals("OK"), responseBody);
+    }
+
+    private String trimResponseBody(final String in) {
+        return (!StringUtils.isEmpty(in)) ? in.replace("\r\n", "") : in;
     }
 }
