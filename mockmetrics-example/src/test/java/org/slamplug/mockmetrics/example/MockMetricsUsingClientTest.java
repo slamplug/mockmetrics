@@ -35,6 +35,21 @@ public class MockMetricsUsingClientTest {
         );
     }
 
+    @Test
+    public void shouldAssertMultipleGaugeMetricReceived() throws Exception {
+        udpClient.sendMetricWithPauseAfter("test.metric.1:1|g");
+        udpClient.sendMetricWithPauseAfter("test.metric.2:2|g");
+
+        mockMetricsClient.verify(verifications().withVerifications(
+                verification().withMetric(
+                        gauge().withName("test.metric.1").withValue(1)
+                ),
+                verification().withMetric(
+                        gauge().withName("test.metric.2").withValue(2)
+                ))
+        );
+    }
+
     @Test(expected = AssertionError.class)
     public void shouldAssertGaugeMetricNotReceived() throws Exception {
         udpClient.sendMetricWithPauseAfter("test.metric:1|c");
@@ -42,6 +57,21 @@ public class MockMetricsUsingClientTest {
         mockMetricsClient.verify(verifications().withVerifications(
                 verification().withMetric(
                         gauge().withName("test.metric").withValue(1)
+                ))
+        );
+    }
+
+    @Test(expected = AssertionError.class)
+    public void shouldAssertMultipleGaugeMetricNotReceived() throws Exception {
+        udpClient.sendMetricWithPauseAfter("test.metric.1:1|c");
+        udpClient.sendMetricWithPauseAfter("test.metric.2:2|g");
+
+        mockMetricsClient.verify(verifications().withVerifications(
+                verification().withMetric(
+                        gauge().withName("test.metric.1").withValue(1)
+                ),
+                verification().withMetric(
+                        gauge().withName("test.metric.2").withValue(2)
                 ))
         );
     }
